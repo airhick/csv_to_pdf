@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Générateur de PDFs avec Adresses</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 40px;
+            max-width: 600px;
+            width: 100%;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        .file-input-wrapper {
+            position: relative;
+            display: inline-block;
+            width: 100%;
+        }
+
+        .file-input {
+            position: absolute;
+            opacity: 0;
+            width: 100%;
+            height: 100%;
+            cursor: pointer;
+        }
+
+        .file-input-button {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 15px 20px;
+            background: #f5f5f5;
+            border: 2px dashed #ccc;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            min-height: 60px;
+        }
+
+        .file-input-button:hover {
+            background: #e8e8e8;
+            border-color: #667eea;
+        }
+
+        .file-input-button.has-file {
+            background: #e8f5e9;
+            border-color: #4caf50;
+        }
+
+        .file-name {
+            margin-top: 8px;
+            font-size: 12px;
+            color: #666;
+            word-break: break-all;
+        }
+
+        .submit-button {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+            margin-top: 20px;
+        }
+
+        .submit-button:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .submit-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .progress {
+            display: none;
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        .progress.active {
+            display: block;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #f0f0f0;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 10px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            width: 0%;
+            transition: width 0.3s;
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        .status {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 10px;
+            display: none;
+        }
+
+        .status.success {
+            background: #e8f5e9;
+            color: #2e7d32;
+            border: 1px solid #4caf50;
+            display: block;
+        }
+
+        .status.error {
+            background: #ffebee;
+            color: #c62828;
+            border: 1px solid #ef5350;
+            display: block;
+        }
+
+        .info-box {
+            background: #e3f2fd;
+            border-left: 4px solid #2196f3;
+            padding: 15px;
+            margin-bottom: 25px;
+            border-radius: 4px;
+            font-size: 13px;
+            color: #1565c0;
+        }
+
+        .info-box strong {
+            display: block;
+            margin-bottom: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📄 Générateur de PDFs avec Adresses</h1>
+        <p class="subtitle">Générez des PDFs avec des adresses au verso depuis un fichier CSV</p>
+
+        <div class="info-box">
+            <strong>Format requis :</strong>
+            Votre fichier CSV doit contenir une colonne nommée "adresse" (en minuscules).
+            Chaque ligne représente une adresse complète.
+        </div>
+
+        <form id="pdfForm">
+            <div class="form-group">
+                <label for="csvFile">Fichier CSV *</label>
+                <div class="file-input-wrapper">
+                    <input type="file" id="csvFile" name="csvFile" accept=".csv" class="file-input" required>
+                    <div class="file-input-button" id="csvButton">
+                        <span>📁 Choisir un fichier CSV</span>
+                    </div>
+                    <div class="file-name" id="csvFileName"></div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="pdfFile">Fichier PDF Template *</label>
+                <div class="file-input-wrapper">
+                    <input type="file" id="pdfFile" name="pdfFile" accept=".pdf" class="file-input" required>
+                    <div class="file-input-button" id="pdfButton">
+                        <span>📄 Choisir un fichier PDF</span>
+                    </div>
+                    <div class="file-name" id="pdfFileName"></div>
+                </div>
+            </div>
+
+            <button type="submit" class="submit-button" id="submitButton">
+                Générer les PDFs et créer le ZIP
+            </button>
+        </form>
+
+        <div class="progress" id="progress">
+            <div class="progress-bar">
+                <div class="progress-fill"></div>
+            </div>
+            <p>Traitement en cours...</p>
+        </div>
+
+        <div class="status" id="status"></div>
+    </div>
+
+    <script>
+        // Gestion des inputs de fichiers
+        const csvFile = document.getElementById('csvFile');
+        const pdfFile = document.getElementById('pdfFile');
+        const csvButton = document.getElementById('csvButton');
+        const pdfButton = document.getElementById('pdfButton');
+        const csvFileName = document.getElementById('csvFileName');
+        const pdfFileName = document.getElementById('pdfFileName');
+
+        csvFile.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                csvButton.classList.add('has-file');
+                csvFileName.textContent = `✓ ${e.target.files[0].name}`;
+            }
+        });
+
+        pdfFile.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                pdfButton.classList.add('has-file');
+                pdfFileName.textContent = `✓ ${e.target.files[0].name}`;
+            }
+        });
+
+        // Gestion du formulaire
+        const form = document.getElementById('pdfForm');
+        const submitButton = document.getElementById('submitButton');
+        const progress = document.getElementById('progress');
+        const status = document.getElementById('status');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            // Désactiver le bouton et afficher la progression
+            submitButton.disabled = true;
+            progress.classList.add('active');
+            status.classList.remove('success', 'error');
+
+            try {
+                // Convertir les fichiers en base64
+                const csvFileData = await fileToBase64(csvFile.files[0]);
+                const pdfFileData = await fileToBase64(pdfFile.files[0]);
+
+                const requestBody = {
+                    csvFile: csvFileData,
+                    pdfFile: pdfFileData,
+                    csvFilename: csvFile.files[0].name,
+                    pdfFilename: pdfFile.files[0].name
+                };
+
+                const response = await fetch('/.netlify/functions/generate-pdfs', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(requestBody)
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || `Erreur: ${response.statusText}`);
+                }
+
+                // Récupérer le ZIP (en base64 si isBase64Encoded, sinon blob)
+                let blob;
+                if (response.headers.get('content-type') === 'application/zip') {
+                    const base64Data = await response.text();
+                    const binaryString = atob(base64Data);
+                    const bytes = new Uint8Array(binaryString.length);
+                    for (let i = 0; i < binaryString.length; i++) {
+                        bytes[i] = binaryString.charCodeAt(i);
+                    }
+                    blob = new Blob([bytes], { type: 'application/zip' });
+                } else {
+                    blob = await response.blob();
+                }
+                
+                // Créer un lien de téléchargement
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `pdfs_${new Date().getTime()}.zip`;
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                document.body.removeChild(a);
+
+                status.textContent = '✓ Succès! Le fichier ZIP a été téléchargé.';
+                status.classList.add('success');
+
+            } catch (error) {
+                status.textContent = `✗ Erreur: ${error.message}`;
+                status.classList.add('error');
+            } finally {
+                submitButton.disabled = false;
+                progress.classList.remove('active');
+            }
+        });
+
+        // Fonction pour convertir un fichier en base64
+        function fileToBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = reject;
+                reader.readAsDataURL(file);
+            });
+        }
+    </script>
+</body>
+</html>
+

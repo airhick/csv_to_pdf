@@ -1,0 +1,13 @@
+{
+  "name": "pdf-generator-netlify",
+  "version": "1.0.0",
+  "description": "Générateur de PDFs avec adresses pour Netlify",
+  "scripts": {
+    "build": "echo 'No build step required'"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "@netlify/plugin-functions": "^4.0.0"
+  }
+}
+

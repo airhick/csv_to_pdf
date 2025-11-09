@@ -110,14 +110,20 @@ def create_address_overlay(address_text, page_width, page_height,
     packet.seek(0)
     return packet
 
-def create_blank_page_with_address(page_width, page_height, address):
+def create_blank_page_with_address(page_width, page_height, address, position=None):
     """
     Crée une page blanche avec l'adresse positionnée dans la zone définie.
-    Zone d'adresse :
-    - Du haut de la page au haut du rectangle : 23.5 cm
-    - Du côté droit au côté droit du rectangle : 2 cm
-    - Du côté gauche au côté gauche du rectangle : 9.5 cm
-    - Du bas au bas du rectangle : 2 cm
+    
+    Args:
+        page_width: Largeur de la page (en mm ou points)
+        page_height: Hauteur de la page (en mm ou points)
+        address: Texte de l'adresse
+        position: Dictionnaire avec les clés suivantes (en mm):
+            - left: Distance depuis la gauche
+            - right: Distance depuis la droite
+            - bottom: Distance depuis le bas
+            - width: Largeur de la zone
+            - height: Hauteur de la zone
     """
     # Créer une page PDF complète avec le canvas
     packet = BytesIO()
@@ -139,12 +145,26 @@ def create_blank_page_with_address(page_width, page_height, address):
     # Pour une page A4 : 210mm x 297mm = 595.276 points x 841.890 points
     
     # Dimensions de la zone d'adresse (en points)
-    # Position depuis le bas : 2 cm = 20 mm
-    y_offset_pt = 20 * mm  # reportlab mm est déjà en points
-    # Position depuis la droite : 2 cm = 20 mm
-    x_offset_pt = 20 * mm
-    # Position depuis la gauche : 9.5 cm = 95 mm
-    min_x_pt = 95 * mm
+    # Utiliser les paramètres personnalisés si fournis, sinon valeurs par défaut
+    if position:
+        left_mm = position.get('left', 95)
+        right_mm = position.get('right', 15)
+        bottom_mm = position.get('bottom', 20)
+        zone_width_mm = position.get('width', 100)
+        zone_height_mm = position.get('height', 40)
+    else:
+        # Valeurs par défaut
+        left_mm = 95
+        right_mm = 15
+        bottom_mm = 20
+        zone_width_mm = 100
+        zone_height_mm = 40
+    
+    # Convertir en points
+    min_x_pt = left_mm * mm
+    x_offset_pt = right_mm * mm
+    y_offset_pt = bottom_mm * mm
+    zone_width_pt = zone_width_mm * mm
     
     # Position de référence à droite (en points)
     x_position_right = page_width_pt - x_offset_pt
@@ -153,7 +173,8 @@ def create_blank_page_with_address(page_width, page_height, address):
     # Configuration du texte
     font_size = 10  # Taille de police augmentée pour visibilité
     line_height = 4 * mm  # Espacement augmenté
-    max_width_pt = page_width_pt - min_x_pt - x_offset_pt
+    # La largeur max est la largeur de la zone définie
+    max_width_pt = zone_width_pt
     
     # Nettoyer et diviser l'adresse en lignes
     lines = [line.strip() for line in address.split('\n') if line.strip()]
@@ -220,10 +241,16 @@ def create_blank_page_with_address(page_width, page_height, address):
     
     return verso_page
 
-def add_address_to_pdf_verso(input_pdf_path, output_pdf_path, address):
+def add_address_to_pdf_verso(input_pdf_path, output_pdf_path, address, position=None):
     """
     Ajoute une nouvelle page verso avec l'adresse après chaque page du PDF.
     Structure: Page 1 (recto) -> Page 2 (verso avec adresse) -> Page 3 (recto) -> Page 4 (verso avec adresse)...
+    
+    Args:
+        input_pdf_path: Chemin vers le PDF d'entrée
+        output_pdf_path: Chemin vers le PDF de sortie
+        address: Texte de l'adresse
+        position: Dictionnaire avec les paramètres de position (optionnel)
     """
     # Lire le PDF d'entrée
     reader = PdfReader(input_pdf_path)
@@ -241,14 +268,14 @@ def add_address_to_pdf_verso(input_pdf_path, output_pdf_path, address):
         
         # Créer une nouvelle page verso avec l'adresse pour chaque page
         # (créer à chaque fois pour éviter les problèmes de référence)
-        verso_page = create_blank_page_with_address(page_width, page_height, address)
+        verso_page = create_blank_page_with_address(page_width, page_height, address, position)
         writer.add_page(verso_page)
     
     # Écrire le PDF de sortie
     with open(output_pdf_path, 'wb') as output_file:
         writer.write(output_file)
 
-def process_csv_and_pdf(csv_path, pdf_path, output_dir=None, single_file=False):
+def process_csv_and_pdf(csv_path, pdf_path, output_dir=None, single_file=False, position=None):
     """
     Traite le CSV et crée un PDF pour chaque adresse ou un seul PDF combiné.
     
@@ -257,6 +284,7 @@ def process_csv_and_pdf(csv_path, pdf_path, output_dir=None, single_file=False):
         pdf_path: Chemin vers le PDF template
         output_dir: Dossier de sortie (par défaut: dossier du CSV/output)
         single_file: Si True, crée un seul PDF avec toutes les pages
+        position: Dictionnaire avec les paramètres de position (optionnel)
     """
     csv_path = Path(csv_path)
     pdf_path = Path(pdf_path)
@@ -351,7 +379,7 @@ def process_csv_and_pdf(csv_path, pdf_path, output_dir=None, single_file=False):
             writer.add_page(template_page)
             
             # Créer et ajouter la page verso avec l'adresse
-            verso_page = create_blank_page_with_address(page_width, page_height, address)
+            verso_page = create_blank_page_with_address(page_width, page_height, address, position)
             writer.add_page(verso_page)
         
         output_path = output_dir / "rescto_all_addresses.pdf"
@@ -370,7 +398,7 @@ def process_csv_and_pdf(csv_path, pdf_path, output_dir=None, single_file=False):
             print(f"  Adresse: {address[:50]}...")
             
             try:
-                add_address_to_pdf_verso(pdf_path, output_path, address)
+                add_address_to_pdf_verso(pdf_path, output_path, address, position)
                 print(f"  ✓ Créé: {output_path}")
             except Exception as e:
                 print(f"  ✗ Erreur: {e}")

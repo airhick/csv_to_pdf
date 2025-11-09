@@ -55,6 +55,7 @@ def handler(event, context):
         pdf_base64 = body.get('pdfFile')
         csv_filename = body.get('csvFilename', 'addresses.csv')
         pdf_filename = body.get('pdfFilename', 'template.pdf')
+        position = body.get('position')  # Paramètres de position personnalisés
         
         if not csv_base64 or not pdf_base64:
             return {
@@ -85,8 +86,8 @@ def handler(event, context):
             output_dir = os.path.join(temp_dir, 'output')
             os.makedirs(output_dir, exist_ok=True)
             
-            # Traiter les fichiers
-            process_csv_and_pdf(csv_path, pdf_path, output_dir, single_file=False)
+            # Traiter les fichiers avec les paramètres de position
+            process_csv_and_pdf(csv_path, pdf_path, output_dir, single_file=False, position=position)
             
             # Créer le ZIP
             zip_path = os.path.join(temp_dir, 'pdfs.zip')

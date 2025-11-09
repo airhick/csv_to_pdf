@@ -6,8 +6,6 @@
     "build": "echo 'No build step required'"
   },
   "dependencies": {},
-  "devDependencies": {
-    "@netlify/plugin-functions": "^4.0.0"
-  }
+  "devDependencies": {}
 }
 

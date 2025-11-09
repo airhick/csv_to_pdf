@@ -16,9 +16,6 @@
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             padding: 20px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
         }
 
         .container {
@@ -26,8 +23,8 @@
             border-radius: 20px;
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
             padding: 40px;
-            max-width: 600px;
-            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
         }
 
         h1 {
@@ -40,6 +37,18 @@
             color: #666;
             margin-bottom: 30px;
             font-size: 14px;
+        }
+
+        .form-section {
+            margin-bottom: 40px;
+        }
+
+        .section-title {
+            font-size: 20px;
+            color: #333;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e0e0e0;
         }
 
         .form-group {
@@ -96,6 +105,106 @@
             font-size: 12px;
             color: #666;
             word-break: break-all;
+        }
+
+        /* Éditeur visuel */
+        .position-editor {
+            background: #f9f9f9;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .page-preview {
+            position: relative;
+            background: white;
+            border: 2px solid #333;
+            margin: 20px auto;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .address-zone {
+            position: absolute;
+            background: rgba(102, 126, 234, 0.3);
+            border: 2px solid #667eea;
+            cursor: move;
+            user-select: none;
+        }
+
+        .address-zone:hover {
+            background: rgba(102, 126, 234, 0.4);
+        }
+
+        .address-zone.dragging {
+            background: rgba(102, 126, 234, 0.5);
+            border-color: #764ba2;
+        }
+
+        .resize-handle {
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            background: #667eea;
+            border: 2px solid white;
+            border-radius: 50%;
+            cursor: nwse-resize;
+        }
+
+        .resize-handle.se {
+            bottom: -6px;
+            right: -6px;
+        }
+
+        .resize-handle.sw {
+            bottom: -6px;
+            left: -6px;
+            cursor: nesw-resize;
+        }
+
+        .resize-handle.ne {
+            top: -6px;
+            right: -6px;
+            cursor: nesw-resize;
+        }
+
+        .resize-handle.nw {
+            top: -6px;
+            left: -6px;
+        }
+
+        .coordinates {
+            margin-top: 15px;
+            padding: 15px;
+            background: white;
+            border-radius: 8px;
+            font-size: 12px;
+            font-family: 'Courier New', monospace;
+        }
+
+        .coordinate-item {
+            margin: 5px 0;
+            color: #666;
+        }
+
+        .coordinate-value {
+            color: #667eea;
+            font-weight: bold;
+        }
+
+        .reset-button {
+            margin-top: 15px;
+            padding: 10px 20px;
+            background: #f5f5f5;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .reset-button:hover {
+            background: #e0e0e0;
         }
 
         .submit-button {
@@ -203,25 +312,74 @@
         </div>
 
         <form id="pdfForm">
-            <div class="form-group">
-                <label for="csvFile">Fichier CSV *</label>
-                <div class="file-input-wrapper">
-                    <input type="file" id="csvFile" name="csvFile" accept=".csv" class="file-input" required>
-                    <div class="file-input-button" id="csvButton">
-                        <span>📁 Choisir un fichier CSV</span>
+            <!-- Section fichiers -->
+            <div class="form-section">
+                <h2 class="section-title">1. Fichiers</h2>
+                
+                <div class="form-group">
+                    <label for="csvFile">Fichier CSV *</label>
+                    <div class="file-input-wrapper">
+                        <input type="file" id="csvFile" name="csvFile" accept=".csv" class="file-input" required>
+                        <div class="file-input-button" id="csvButton">
+                            <span>📁 Choisir un fichier CSV</span>
+                        </div>
+                        <div class="file-name" id="csvFileName"></div>
                     </div>
-                    <div class="file-name" id="csvFileName"></div>
+                </div>
+
+                <div class="form-group">
+                    <label for="pdfFile">Fichier PDF Template *</label>
+                    <div class="file-input-wrapper">
+                        <input type="file" id="pdfFile" name="pdfFile" accept=".pdf" class="file-input" required>
+                        <div class="file-input-button" id="pdfButton">
+                            <span>📄 Choisir un fichier PDF</span>
+                        </div>
+                        <div class="file-name" id="pdfFileName"></div>
+                    </div>
                 </div>
             </div>
 
-            <div class="form-group">
-                <label for="pdfFile">Fichier PDF Template *</label>
-                <div class="file-input-wrapper">
-                    <input type="file" id="pdfFile" name="pdfFile" accept=".pdf" class="file-input" required>
-                    <div class="file-input-button" id="pdfButton">
-                        <span>📄 Choisir un fichier PDF</span>
+            <!-- Section position -->
+            <div class="form-section">
+                <h2 class="section-title">2. Position de l'adresse</h2>
+                <p style="color: #666; margin-bottom: 15px; font-size: 14px;">
+                    Glissez et redimensionnez le rectangle bleu pour définir où l'adresse sera écrite sur la page verso.
+                </p>
+                
+                <div class="position-editor">
+                    <div class="page-preview" id="pagePreview">
+                        <div class="address-zone" id="addressZone">
+                            <div class="resize-handle nw"></div>
+                            <div class="resize-handle ne"></div>
+                            <div class="resize-handle sw"></div>
+                            <div class="resize-handle se"></div>
+                        </div>
                     </div>
-                    <div class="file-name" id="pdfFileName"></div>
+                    
+                    <div class="coordinates" id="coordinates">
+                        <div class="coordinate-item">
+                            Distance depuis la gauche: <span class="coordinate-value" id="leftDist">95</span> mm
+                        </div>
+                        <div class="coordinate-item">
+                            Distance depuis la droite: <span class="coordinate-value" id="rightDist">15</span> mm
+                        </div>
+                        <div class="coordinate-item">
+                            Distance depuis le bas: <span class="coordinate-value" id="bottomDist">20</span> mm
+                        </div>
+                        <div class="coordinate-item">
+                            Distance depuis le haut: <span class="coordinate-value" id="topDist">257</span> mm
+                        </div>
+                        <div class="coordinate-item">
+                            Largeur de la zone: <span class="coordinate-value" id="width">100</span> mm
+                        </div>
+                        <div class="coordinate-item">
+                            Hauteur de la zone: <span class="coordinate-value" id="height">20</span> mm
+                        </div>
+                    </div>
+                    
+                    <button type="button" class="reset-button" id="resetButton">
+                        Réinitialiser à la position par défaut
+                    </button>
                 </div>
             </div>
 
@@ -241,6 +399,178 @@
     </div>
 
     <script>
+        // Dimensions A4 en pixels (échelle 1:2 pour l'affichage)
+        const A4_WIDTH_MM = 210;
+        const A4_HEIGHT_MM = 297;
+        const SCALE = 2; // Échelle d'affichage (1mm = 2px)
+        const A4_WIDTH_PX = A4_WIDTH_MM * SCALE;
+        const A4_HEIGHT_PX = A4_HEIGHT_MM * SCALE;
+
+        // Position par défaut (en mm depuis les bords)
+        const DEFAULT_POSITION = {
+            left: 95,    // 9.5 cm depuis la gauche
+            right: 15,  // 1.5 cm depuis la droite
+            bottom: 20, // 2 cm depuis le bas
+            width: 100, // Largeur de la zone
+            height: 40  // Hauteur de la zone
+        };
+
+        let currentPosition = { ...DEFAULT_POSITION };
+        let isDragging = false;
+        let isResizing = false;
+        let dragStart = { x: 0, y: 0 };
+        let resizeHandle = null;
+
+        // Initialisation
+        const pagePreview = document.getElementById('pagePreview');
+        const addressZone = document.getElementById('addressZone');
+        const resetButton = document.getElementById('resetButton');
+
+        // Configurer la taille de la prévisualisation
+        pagePreview.style.width = A4_WIDTH_PX + 'px';
+        pagePreview.style.height = A4_HEIGHT_PX + 'px';
+
+        // Fonction pour convertir mm en px
+        function mmToPx(mm) {
+            return mm * SCALE;
+        }
+
+        // Fonction pour convertir px en mm
+        function pxToMm(px) {
+            return px / SCALE;
+        }
+
+        // Mettre à jour la position du rectangle
+        function updateZonePosition() {
+            const leftPx = mmToPx(currentPosition.left);
+            const bottomPx = mmToPx(currentPosition.bottom);
+            const widthPx = mmToPx(currentPosition.width);
+            const heightPx = mmToPx(currentPosition.height);
+
+            addressZone.style.left = leftPx + 'px';
+            addressZone.style.bottom = bottomPx + 'px';
+            addressZone.style.width = widthPx + 'px';
+            addressZone.style.height = heightPx + 'px';
+
+            // Mettre à jour les coordonnées affichées
+            updateCoordinates();
+        }
+
+        // Mettre à jour l'affichage des coordonnées
+        function updateCoordinates() {
+            const topDist = A4_HEIGHT_MM - currentPosition.bottom - currentPosition.height;
+            
+            document.getElementById('leftDist').textContent = currentPosition.left.toFixed(1);
+            document.getElementById('rightDist').textContent = (A4_WIDTH_MM - currentPosition.left - currentPosition.width).toFixed(1);
+            document.getElementById('bottomDist').textContent = currentPosition.bottom.toFixed(1);
+            document.getElementById('topDist').textContent = topDist.toFixed(1);
+            document.getElementById('width').textContent = currentPosition.width.toFixed(1);
+            document.getElementById('height').textContent = currentPosition.height.toFixed(1);
+        }
+
+        // Gestion du drag
+        addressZone.addEventListener('mousedown', (e) => {
+            if (e.target.classList.contains('resize-handle')) {
+                isResizing = true;
+                resizeHandle = e.target;
+            } else {
+                isDragging = true;
+                addressZone.classList.add('dragging');
+            }
+            dragStart.x = e.clientX;
+            dragStart.y = e.clientY;
+            e.preventDefault();
+        });
+
+        document.addEventListener('mousemove', (e) => {
+            if (isDragging) {
+                const deltaX = (e.clientX - dragStart.x) / SCALE;
+                const deltaY = (e.clientY - dragStart.y) / SCALE;
+
+                currentPosition.left = Math.max(0, Math.min(
+                    currentPosition.left + deltaX,
+                    A4_WIDTH_MM - currentPosition.width
+                ));
+                currentPosition.bottom = Math.max(0, Math.min(
+                    currentPosition.bottom - deltaY,
+                    A4_HEIGHT_MM - currentPosition.height
+                ));
+
+                updateZonePosition();
+                dragStart.x = e.clientX;
+                dragStart.y = e.clientY;
+            } else if (isResizing && resizeHandle) {
+                const deltaX = (e.clientX - dragStart.x) / SCALE;
+                const deltaY = (e.clientY - dragStart.y) / SCALE;
+
+                if (resizeHandle.classList.contains('se')) {
+                    currentPosition.width = Math.max(20, Math.min(
+                        currentPosition.width + deltaX,
+                        A4_WIDTH_MM - currentPosition.left
+                    ));
+                    currentPosition.height = Math.max(10, Math.min(
+                        currentPosition.height - deltaY,
+                        A4_HEIGHT_MM - currentPosition.bottom
+                    ));
+                } else if (resizeHandle.classList.contains('sw')) {
+                    const newWidth = currentPosition.width - deltaX;
+                    const newLeft = currentPosition.left + deltaX;
+                    if (newWidth >= 20 && newLeft >= 0) {
+                        currentPosition.width = newWidth;
+                        currentPosition.left = newLeft;
+                    }
+                    currentPosition.height = Math.max(10, Math.min(
+                        currentPosition.height - deltaY,
+                        A4_HEIGHT_MM - currentPosition.bottom
+                    ));
+                } else if (resizeHandle.classList.contains('ne')) {
+                    currentPosition.width = Math.max(20, Math.min(
+                        currentPosition.width + deltaX,
+                        A4_WIDTH_MM - currentPosition.left
+                    ));
+                    const newHeight = currentPosition.height + deltaY;
+                    const newBottom = currentPosition.bottom - deltaY;
+                    if (newHeight >= 10 && newBottom >= 0) {
+                        currentPosition.height = newHeight;
+                        currentPosition.bottom = newBottom;
+                    }
+                } else if (resizeHandle.classList.contains('nw')) {
+                    const newWidth = currentPosition.width - deltaX;
+                    const newLeft = currentPosition.left + deltaX;
+                    if (newWidth >= 20 && newLeft >= 0) {
+                        currentPosition.width = newWidth;
+                        currentPosition.left = newLeft;
+                    }
+                    const newHeight = currentPosition.height + deltaY;
+                    const newBottom = currentPosition.bottom - deltaY;
+                    if (newHeight >= 10 && newBottom >= 0) {
+                        currentPosition.height = newHeight;
+                        currentPosition.bottom = newBottom;
+                    }
+                }
+
+                updateZonePosition();
+                dragStart.x = e.clientX;
+                dragStart.y = e.clientY;
+            }
+        });
+
+        document.addEventListener('mouseup', () => {
+            isDragging = false;
+            isResizing = false;
+            resizeHandle = null;
+            addressZone.classList.remove('dragging');
+        });
+
+        // Bouton reset
+        resetButton.addEventListener('click', () => {
+            currentPosition = { ...DEFAULT_POSITION };
+            updateZonePosition();
+        });
+
+        // Initialisation
+        updateZonePosition();
+
         // Gestion des inputs de fichiers
         const csvFile = document.getElementById('csvFile');
         const pdfFile = document.getElementById('pdfFile');
@@ -286,7 +616,14 @@
                     csvFile: csvFileData,
                     pdfFile: pdfFileData,
                     csvFilename: csvFile.files[0].name,
-                    pdfFilename: pdfFile.files[0].name
+                    pdfFilename: pdfFile.files[0].name,
+                    position: {
+                        left: currentPosition.left,
+                        right: A4_WIDTH_MM - currentPosition.left - currentPosition.width,
+                        bottom: currentPosition.bottom,
+                        width: currentPosition.width,
+                        height: currentPosition.height
+                    }
                 };
 
                 const response = await fetch('/.netlify/functions/generate-pdfs', {
@@ -302,7 +639,7 @@
                     throw new Error(errorData.error || `Erreur: ${response.statusText}`);
                 }
 
-                // Récupérer le ZIP (en base64 si isBase64Encoded, sinon blob)
+                // Récupérer le ZIP
                 let blob;
                 if (response.headers.get('content-type') === 'application/zip') {
                     const base64Data = await response.text();
@@ -350,4 +687,3 @@
     </script>
 </body>
 </html>
-

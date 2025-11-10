@@ -15,9 +15,9 @@ sys.path.insert(0, os.path.join(current_dir, '../../'))
 try:
     from add_addresses_to_pdf import process_csv_and_pdf
 except ImportError as e:
-    # Si le module n'est pas disponible, on retourne une erreur
-    print(f"Import error: {e}")
-    pass
+    # Si le module n'est pas disponible, on définit une fonction d'erreur
+    def process_csv_and_pdf(*args, **kwargs):
+        raise ImportError(f"Module add_addresses_to_pdf non disponible: {e}")
 
 def handler(event, context):
     """Netlify Function handler pour générer les PDFs"""
@@ -48,7 +48,22 @@ def handler(event, context):
     
     try:
         # Parser le body JSON
-        body = json.loads(event.get('body', '{}'))
+        body_str = event.get('body', '{}')
+        if not body_str:
+            return {
+                'statusCode': 400,
+                'headers': headers,
+                'body': json.dumps({'error': 'Body de la requête vide'})
+            }
+        
+        try:
+            body = json.loads(body_str)
+        except json.JSONDecodeError as e:
+            return {
+                'statusCode': 400,
+                'headers': headers,
+                'body': json.dumps({'error': f'Erreur de parsing JSON: {str(e)}'})
+            }
         
         # Récupérer les fichiers en base64
         csv_base64 = body.get('csvFile')
@@ -87,7 +102,18 @@ def handler(event, context):
             os.makedirs(output_dir, exist_ok=True)
             
             # Traiter les fichiers avec les paramètres de position
-            process_csv_and_pdf(csv_path, pdf_path, output_dir, single_file=False, position=position)
+            try:
+                process_csv_and_pdf(csv_path, pdf_path, output_dir, single_file=False, position=position)
+            except ImportError as import_err:
+                return {
+                    'statusCode': 500,
+                    'headers': headers,
+                    'body': json.dumps({
+                        'error': 'Erreur d\'import du module',
+                        'details': str(import_err),
+                        'message': 'Le module add_addresses_to_pdf n\'est pas disponible. Vérifiez que le fichier est présent dans netlify/functions/'
+                    })
+                }
             
             # Créer le ZIP
             zip_path = os.path.join(temp_dir, 'pdfs.zip')

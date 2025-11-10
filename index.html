@@ -634,14 +634,45 @@
                     body: JSON.stringify(requestBody)
                 });
 
+                // Vérifier le type de contenu de la réponse
+                const contentType = response.headers.get('content-type') || '';
+                
                 if (!response.ok) {
-                    const errorData = await response.json();
-                    throw new Error(errorData.error || `Erreur: ${response.statusText}`);
+                    // Essayer de parser comme JSON, sinon traiter comme texte/HTML
+                    let errorMessage = `Erreur ${response.status}: ${response.statusText}`;
+                    try {
+                        if (contentType.includes('application/json')) {
+                            const errorData = await response.json();
+                            errorMessage = errorData.error || errorData.message || errorMessage;
+                        } else {
+                            const textResponse = await response.text();
+                            // Si c'est du HTML, extraire un message d'erreur plus utile
+                            if (textResponse.trim().startsWith('<!DOCTYPE') || textResponse.trim().startsWith('<html')) {
+                                errorMessage = 'Erreur serveur: La fonction Netlify n\'a pas pu être exécutée. Vérifiez les logs de déploiement.';
+                            } else {
+                                errorMessage = textResponse || errorMessage;
+                            }
+                        }
+                    } catch (parseError) {
+                        // Si le parsing échoue, utiliser le message par défaut
+                        console.error('Erreur lors du parsing de la réponse:', parseError);
+                    }
+                    throw new Error(errorMessage);
+                }
+
+                // Vérifier que la réponse est bien un ZIP
+                if (!contentType.includes('application/zip') && !response.headers.get('content-type')?.includes('application/zip')) {
+                    // Si ce n'est pas un ZIP, essayer de lire comme texte pour voir l'erreur
+                    const textResponse = await response.text();
+                    if (textResponse.trim().startsWith('<!DOCTYPE') || textResponse.trim().startsWith('<html')) {
+                        throw new Error('Erreur serveur: Réponse HTML reçue au lieu d\'un fichier ZIP. Vérifiez que la fonction Netlify est correctement déployée.');
+                    }
+                    throw new Error('Réponse inattendue du serveur. Type de contenu: ' + contentType);
                 }
 
                 // Récupérer le ZIP
                 let blob;
-                if (response.headers.get('content-type') === 'application/zip') {
+                if (response.headers.get('content-type')?.includes('application/zip')) {
                     const base64Data = await response.text();
                     const binaryString = atob(base64Data);
                     const bytes = new Uint8Array(binaryString.length);

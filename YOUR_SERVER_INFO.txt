@@ -1,0 +1,123 @@
+╔══════════════════════════════════════════════════════════════╗
+║                                                              ║
+║   🌐 VOTRE SERVEUR PDF EST ACCESSIBLE PUBLIQUEMENT !        ║
+║                                                              ║
+╚══════════════════════════════════════════════════════════════╝
+
+📡 INFORMATIONS DE CONNEXION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+IP Locale (Réseau):  172.16.0.158
+Port:                8002
+Mode:                PUBLIC (sans authentification)
+
+🔗 URLS D'ACCÈS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Interface Web:       http://172.16.0.158:8002
+API Endpoint:        http://172.16.0.158:8002/api/generate
+Health Check:        http://172.16.0.158:8002/health
+API Status:          http://172.16.0.158:8002/api/status
+
+🎯 POUR N8N
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+URL à utiliser:      http://172.16.0.158:8002/api/generate
+Méthode:             POST
+Content-Type:        application/json
+Authentification:    AUCUNE (pour l'instant)
+
+📋 EXEMPLE CURL POUR N8N
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+curl -X POST http://172.16.0.158:8002/api/generate \
+  -H "Content-Type: application/json" \
+  -d '{
+    "data": [
+      {
+        "name": "Jean Dupont",
+        "address": "123 Rue de la République\n75001 Paris\nFrance"
+      }
+    ],
+    "singleFile": true
+  }' \
+  -o output.pdf
+
+🔐 ACTIVER LA SÉCURITÉ (Recommandé)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. Arrêter le serveur actuel (CTRL+C)
+2. Lancer avec sécurité:
+   ./start_public_secure.sh
+
+3. L'API Key sera générée et affichée
+4. Dans n8n, ajouter le header:
+   X-API-Key: your_generated_key
+
+📱 ACCÈS DEPUIS N8N
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+SI N8N EST SUR LE MÊME ORDINATEUR:
+→ http://localhost:8002/api/generate
+
+SI N8N EST SUR LE MÊME RÉSEAU (Wi-Fi/LAN):
+→ http://172.16.0.158:8002/api/generate
+
+SI N8N EST DANS LE CLOUD (n8n.cloud):
+1. Trouvez votre IP publique: curl ifconfig.me
+2. Configurez le port forwarding sur votre routeur:
+   - Port externe: 8002
+   - Port interne: 8002
+   - IP: 172.16.0.158
+3. Utilisez: http://VOTRE_IP_PUBLIQUE:8002/api/generate
+
+🚀 COMMANDES RAPIDES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Démarrer (mode public sans auth):
+./start_public.sh
+
+Démarrer (mode sécurisé avec API Key):
+./start_public_secure.sh
+
+Arrêter le serveur:
+lsof -ti:8002 | xargs kill -9
+
+Tester l'accès:
+curl http://172.16.0.158:8002/health
+
+Voir votre IP publique:
+curl ifconfig.me
+
+📚 DOCUMENTATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Guide complet:           PUBLIC_ACCESS_GUIDE.md
+Exemples n8n:            N8N_EXAMPLES.md
+Documentation API:       API_DOCUMENTATION.md
+Exemples Python:         API_EXAMPLES.py
+Tests automatiques:      ./API_QUICK_START.sh
+
+✅ STATUT ACTUEL
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✓ Serveur démarré sur 0.0.0.0:8002
+✓ Accessible depuis 172.16.0.158:8002
+✓ Health check fonctionnel
+✓ API generate testé avec succès
+✓ Prêt pour n8n !
+
+⚠️  IMPORTANT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+ACTUELLEMENT SANS AUTHENTIFICATION !
+Pour une utilisation sur Internet, lancez:
+→ ./start_public_secure.sh
+
+╔══════════════════════════════════════════════════════════════╗
+║                                                              ║
+║   🎉 VOTRE API EST OPÉRATIONNELLE !                         ║
+║                                                              ║
+╚══════════════════════════════════════════════════════════════╝
+
+

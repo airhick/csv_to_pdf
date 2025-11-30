@@ -1,104 +1,116 @@
-# Script d'ajout d'adresses au verso d'un PDF
+# 📄 PDF Generator API - Recto-Verso avec Nom et Adresse
 
-Ce script permet d'ajouter des adresses de destinataires au verso d'un PDF depuis un fichier CSV. Pour chaque page du PDF original, une nouvelle page verso est créée avec l'adresse positionnée en bas à gauche, visible à travers une fenêtre d'enveloppe lors de l'impression recto-verso.
+Application web pour générer des PDFs recto-verso personnalisés avec nom et adresse à partir de fichiers CSV.
 
-## Installation
+## ✨ Fonctionnalités
 
-1. Installer les dépendances Python :
+- **Upload multiple de CSV** - Plusieurs fichiers CSV simultanément
+- **Détection automatique des colonnes** - Détecte `name`/`nom` et `address`/`adresse`
+- **Prévisualisation des données** - Visualisez les données avant génération
+- **Positionnement visuel interactif** - Drag & drop pour positionner nom et adresse
+- **Génération PDF recto-verso** - Structure: Recto → Verso → Recto → Verso...
+- **API REST** - Utilisable depuis n'importe quelle application
+
+## 🚀 Installation Locale
 
 ```bash
+# Créer un environnement virtuel
+python3 -m venv venv
+source venv/bin/activate  # Sur Windows: venv\Scripts\activate
+
+# Installer les dépendances
 pip install -r requirements.txt
+
+# Lancer le serveur
+python app.py
 ```
 
-Les bibliothèques requises sont :
-- `PyPDF2` : pour manipuler les fichiers PDF
-- `reportlab` : pour créer les overlays avec les adresses
+L'application sera accessible sur `http://localhost:8002`
 
-## Format du fichier CSV
+## 📦 Déploiement
 
-Le fichier CSV doit contenir une colonne nommée `adresse`. Chaque ligne représente une adresse complète. L'adresse peut contenir des sauts de ligne (`\n`) pour séparer les différentes lignes de l'adresse.
+### Coolify (VPS)
 
-Exemple de fichier CSV :
+Voir `DEPLOY_COOLIFY.md` pour le guide complet de déploiement sur Coolify.
 
+## 📋 Format CSV
+
+Vos CSV doivent contenir au minimum une de ces colonnes :
+
+**Pour le nom:**
+- `name`, `nom`, `prenom`, `firstname`, `lastname`
+
+**Pour l'adresse:**
+- `address`, `adresse`, `addr`
+
+**Exemple:**
 ```csv
-adresse
-Jean Dupont
-123 Rue de la République
-75001 Paris
-France
-Marie Martin
-45 Avenue des Champs-Élysées
-75008 Paris
-France
+name,address
+"Jean Dupont","123 Rue de la République\n75001 Paris\nFrance"
+"Marie Martin","45 Avenue des Champs-Élysées\n75008 Paris\nFrance"
 ```
 
-**Note** : Si votre adresse est sur plusieurs lignes dans le CSV, vous pouvez utiliser des guillemets et des sauts de ligne :
+## 🔌 API
 
-```csv
-adresse
-"Jean Dupont
-123 Rue de la République
-75001 Paris
-France"
+### Endpoint Principal
+
+```
+POST /api/generate
 ```
 
-## Utilisation
-
-### Mode par défaut (un PDF par adresse)
-
-Crée un fichier PDF séparé pour chaque adresse :
-
-```bash
-python add_addresses_to_pdf.py example_addresses.csv rescto.pdf
+**Headers:**
+```
+X-API-Key: YOUR_API_KEY
+Content-Type: application/json
 ```
 
-### Mode fichier unique (toutes les adresses dans un seul PDF)
-
-Crée un seul PDF avec toutes les pages :
-
-```bash
-python add_addresses_to_pdf.py example_addresses.csv rescto.pdf --single
+**Body:**
+```json
+{
+  "data": [
+    {
+      "name": "John Doe",
+      "address": "123 Main Street\nNew York, NY 10001\nUSA"
+    }
+  ],
+  "namePosition": {
+    "left": 20,
+    "bottom": 250,
+    "width": 80,
+    "height": 30
+  },
+  "addressPosition": {
+    "left": 95,
+    "bottom": 20,
+    "width": 100,
+    "height": 40
+  },
+  "singleFile": true
+}
 ```
 
-### Spécifier un dossier de sortie
+Voir `API_DOCUMENTATION.md` pour la documentation complète.
 
-```bash
-python add_addresses_to_pdf.py example_addresses.csv rescto.pdf output/
-```
+## 📚 Documentation
 
-## Structure des PDFs générés
+- `API_DOCUMENTATION.md` - Documentation complète de l'API
+- `API_POSITIONING_GUIDE.md` - Guide de positionnement nom/adresse
+- `DEPLOY_COOLIFY.md` - Guide de déploiement Coolify
 
-Pour chaque page du PDF original, le script crée :
-1. **Page recto** : La page originale du PDF
-2. **Page verso** : Une nouvelle page blanche avec l'adresse en bas à gauche
+## 🔒 Sécurité
 
-## Positionnement de l'adresse
+Pour un usage en production, configurez :
+- `REQUIRE_API_KEY=true`
+- `API_KEY` avec une valeur sécurisée
+- `DEBUG=false`
 
-Par défaut, l'adresse est positionnée sur la page verso :
-- **20 mm** depuis le bord gauche
-- **30 mm** depuis le bas
+## 📝 Dépendances
 
-Cette position correspond à la zone typique d'une fenêtre d'enveloppe pour le verso. Si vous devez ajuster la position, modifiez les paramètres dans la fonction `create_blank_page_with_address()` :
+- Python 3.11+
+- Flask 3.0.0+
+- PyPDF2 3.0.0+
+- ReportLab 4.0.0+
 
-```python
-x_offset_mm=20  # Distance depuis la gauche
-y_offset_mm=30  # Distance depuis le bas
-font_size=10    # Taille de la police
-```
+---
 
-## Structure des fichiers de sortie
-
-- **Mode par défaut** : `rescto_with_address_1.pdf`, `rescto_with_address_2.pdf`, etc.
-- **Mode --single** : `rescto_all_addresses.pdf` (un seul fichier avec toutes les pages)
-
-Les fichiers sont créés dans le dossier `output/` par défaut, ou dans le dossier spécifié.
-
-## Notes importantes
-
-- Le script préserve toutes les pages du PDF original
-- L'adresse est ajoutée en overlay sur chaque page
-- Les adresses vides dans le CSV sont ignorées
-- Le script détecte automatiquement le délimiteur du CSV (virgule, point-virgule, etc.)
-
-# csv_to_pdf
-# shippingpaper
+**Version:** 2.1

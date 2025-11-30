@@ -9,6 +9,7 @@ import csv
 from pathlib import Path
 from reportlab.pdfgen import canvas
 from reportlab.lib.units import mm
+from reportlab.lib.pagesizes import A4
 from PyPDF2 import PdfReader, PdfWriter
 from io import BytesIO
 
@@ -115,8 +116,8 @@ def create_blank_page_with_name_and_address(page_width, page_height, name, addre
     Crée une page blanche avec le nom et l'adresse positionnés dans des zones définies séparément.
     
     Args:
-        page_width: Largeur de la page (en mm ou points)
-        page_height: Hauteur de la page (en mm ou points)
+        page_width: Largeur de la page EN POINTS (depuis PDF mediabox)
+        page_height: Hauteur de la page EN POINTS (depuis PDF mediabox)
         name: Texte du nom
         address: Texte de l'adresse
         name_position: Dictionnaire avec les clés suivantes (en mm):
@@ -131,14 +132,14 @@ def create_blank_page_with_name_and_address(page_width, page_height, name, addre
     # Créer une page PDF complète avec le canvas
     packet = BytesIO()
     
-    # Vérifier si les dimensions sont en mm ou en points
-    if page_width < 1000:
-        page_width_pt = page_width * mm
-        page_height_pt = page_height * mm
-    else:
-        page_width_pt = page_width
-        page_height_pt = page_height
+    # Les dimensions venant d'un PDF sont TOUJOURS en points
+    # A4 standard: 595.276 x 841.890 points (210mm x 297mm)
+    # On utilise directement les dimensions du recto pour garantir le même format exact
+    page_width_pt = float(page_width)
+    page_height_pt = float(page_height)
     
+    # Utiliser les dimensions exactes du recto pour le verso
+    # Cela garantit que recto et verso ont exactement le même format
     can = canvas.Canvas(packet, pagesize=(page_width_pt, page_height_pt))
     can.setFillColorRGB(0, 0, 0)
     
@@ -226,6 +227,9 @@ def create_blank_page_with_name_and_address(page_width, page_height, name, addre
     
     if '/Contents' not in verso_page:
         raise ValueError("La page verso n'a pas de contenu")
+    
+    # Le mediabox est automatiquement correct car le canvas a été créé avec les dimensions exactes
+    # du recto (page_width_pt x page_height_pt), garantissant que recto et verso ont le même format
     
     return verso_page
 

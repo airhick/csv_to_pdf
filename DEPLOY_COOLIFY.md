@@ -33,9 +33,9 @@ git push
 
 **Configuration:**
 - **Branch:** `main` (ou votre branche par défaut)
-- **Build Pack:** `Dockerfile` (Coolify détectera automatiquement le Dockerfile)
+- **Build Pack:** `Dockerfile` ⚠️ **IMPORTANT:** Sélectionnez explicitement "Dockerfile" (ne pas laisser sur "Nixpacks")
 - **Base Directory:** `/` (laisser vide ou `/`)
-- **Port:** `8002` (ou laisser vide, Coolify utilisera la variable PORT)
+- **Port:** `8002` ⚠️ **IMPORTANT:** Changez de 3000 à 8002
 - **Is it a static site?:** ❌ Non (décocher)
 
 ### 4. Variables d'Environnement
@@ -118,11 +118,21 @@ Coolify peut redéployer automatiquement quand vous poussez sur votre branche :
 
 ## 🐛 Dépannage
 
+### Coolify détecte Node.js au lieu de Python
+
+**Symptôme:** Les logs montrent `npm ci` ou `npm run build` au lieu de `pip install`
+
+**Solution:**
+1. Dans Coolify, allez dans les **Settings** de votre application
+2. Changez **Build Pack** de "Nixpacks" à **"Dockerfile"**
+3. Redéployez
+
 ### L'application ne démarre pas
 
 1. Vérifiez les **Logs** dans Coolify
 2. Vérifiez que toutes les variables d'environnement sont définies
-3. Vérifiez que le port est correct
+3. Vérifiez que le port est `8002` (pas 3000)
+4. Vérifiez que le Build Pack est bien "Dockerfile"
 
 ### Erreur "Module not found"
 
